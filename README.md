@@ -10,7 +10,8 @@
 
 ## Reference[^1]
 
-![pomb.us](https://avatars.githubusercontent.com/u/1911623?v=4)
+<img src="https://www.freecodecamp.org/news/content/images/size/w2000/2021/06/Ekran-Resmi-2019-11-18-18.08.13.png" alt="Alt Text" style="width:500px; height:300px;">
+
 
 [create-own-react](https://pomb.us/build-your-own-react/)
 

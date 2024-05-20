@@ -1,13 +1,9 @@
-// const element = <h1 title="foo">Hello</h1>;
-
-// const element = React.createElement("h1", { title: "foo" }, "Hello");
-
-function createElement(type, props, ...childern) {
+function createElement(type, props, ...children) {
   return {
     type,
     props: {
       ...props,
-      children: childern.map((child) =>
+      children: children.map((child) =>
         typeof child === "object" ? child : createTextElement(child)
       ),
     },
@@ -19,13 +15,29 @@ function createTextElement(text) {
     type: "TEXT_ELEMENT",
     props: {
       nodeValue: text,
-      childern: [],
+      children: [],
     },
   };
 }
 
+function render(element, container) {
+  const dom =
+    element.type == "TEXT_ELEMENT"
+      ? document.createTextNode("")
+      : document.createElement(element.type);
+  const isProperty = (key) => key !== "children";
+  Object.keys(element.props)
+    .filter(isProperty)
+    .forEach((name) => {
+      dom[name] = element.props[name];
+    });
+  element.props.children.forEach((child) => render(child, dom));
+  container.appendChild(dom);
+}
+
 const Didact = {
   createElement,
+  render,
 };
 
 const element = Didact.createElement(
@@ -35,26 +47,6 @@ const element = Didact.createElement(
   Didact.createElement("b")
 );
 
-// const element = {
-//   type: "h1",
-//   props: {
-//     title: "foo",
-//     children: "Hello",
-//   },
-// };
-
 const container = document.getElementById("root");
 
-// ReactDom.render(element, container);
-
-console.log(element.props.title);
-console.log(element.props.children);
-
-const node = document.createElement(element.type);
-node["title"] = element.props.title;
-
-const text = document.createTextNode("");
-text["nodeValue"] = element.props.children;
-
-node.appendChild(text);
-container.appendChild(node);
+Didact.render(element, container);

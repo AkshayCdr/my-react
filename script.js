@@ -2,11 +2,38 @@
 
 // const element = React.createElement("h1", { title: "foo" }, "Hello");
 
-import { React } from "./React.js";
+function createElement(type, props, ...childern) {
+  return {
+    type,
+    props: {
+      ...props,
+      children: childern.map((child) =>
+        typeof child === "object" ? child : createTextElement(child)
+      ),
+    },
+  };
+}
 
-const element = new React("h1", { title: "foo" }, "Hello").createElement();
+function createTextElement(text) {
+  return {
+    type: "TEXT_ELEMENT",
+    props: {
+      nodeValue: text,
+      childern: [],
+    },
+  };
+}
 
-console.log(element);
+const Didact = {
+  createElement,
+};
+
+const element = Didact.createElement(
+  "div",
+  { id: "foo" },
+  Didact.createElement("a", null, "bar"),
+  Didact.createElement("b")
+);
 
 // const element = {
 //   type: "h1",

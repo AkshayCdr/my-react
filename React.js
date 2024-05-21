@@ -109,12 +109,30 @@ function performUnitOfWork(fiber) {
   }
 }
 
+let wipFiber = null;
+let hookIndex = null;
+
 function updateFunctionComponent(fiber) {
-  // wipFiber = fiber;
-  // hookIndex = 0;
-  // wipFiber.hooks = [];
+  wipFiber = fiber;
+  hookIndex = 0;
+  wipFiber.hooks = [];
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
+}
+
+function useState(initial) {
+  const oldHook =
+    wipFiber.alternate &&
+    wipFiber.alternate.hooks &&
+    wipFiber.alternate.hooks[hookIndex];
+  const hook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: [],
+  };
+
+  wipFiber.hooks.push(hook);
+  hookIndex++;
+  return [hook.state];
 }
 
 function updateHostComponent(fiber) {

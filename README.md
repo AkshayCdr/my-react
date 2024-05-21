@@ -4,12 +4,12 @@
 
 ## React
 
-- [ ] step I : Create element function.
-- [ ] step II : Render function
-- [ ] step III : Concurrent model
-- [ ] step IV : Fibers
-- [ ] step V : Render and Commit Phases
-- [ ] step VI : Reconcilliation
+- [x] step I : Create element function.
+- [x] step II : Render function
+- [x] step III : Concurrent model
+- [x] step IV : Fibers
+- [x] step V : Render and Commit Phases
+- [x] step VI : Reconcilliation
 - [ ] step VII : Function Components
 - [ ] step VIII : Hooks
 

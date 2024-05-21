@@ -14,17 +14,32 @@ function commitWork(fiber) {
     return;
   }
 
-  const domParent = fiber.parent.dom;
+  let domParentFiber = fiber.parent;
+  while (!domParentFiber.dom) {
+    domParentFiber = domParentFiber.parent;
+  }
+  const domParent = domParentFiber.dom;
+
+  // const domParent = fiber.parent.dom;
   if (fiber.effectTag === "PLACEMENT" && fiber.dom != null) {
     domParent.appendChild(fiber.dom);
   } else if (fiber.effectTag === "UPDATE" && fiber.dom != null) {
     updateDom(fiber.dom, fiber.alternate.props, fiber.props);
   } else if (fiber.effectTag === "DELETION") {
-    domParent.removeChild(fiber.dom);
+    // domParent.removeChild(fiber.dom);
+    commitDeletion(fiber, domParent);
   }
 
   commitWork(fiber.child);
   commitWork(fiber.sibling);
+}
+
+function commitDeletion(fiber, domParent) {
+  if (fiber.dom) {
+    domParent.removeChild(fiber.dom);
+  } else {
+    commitDeletion(fiber.child, domParent);
+  }
 }
 
 export function render(element, container) {
@@ -41,6 +56,7 @@ export function render(element, container) {
 
 let nextUnitOfWork = null;
 let currentRoot = null;
+//work in progress root - to avoid incomlete rendering when there is interrupt from browser
 let wipRoot = null;
 let deletions = null;
 
@@ -49,9 +65,11 @@ function workLoop(deadline) {
   let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    //perform work untill deadline
     shouldYield = deadline.timeRemaining() < 1;
   }
 
+  //after finish all  the work fiber tree then add to dom
   if (!nextUnitOfWork && wipRoot) {
     commitRoot();
   }
@@ -65,12 +83,19 @@ function workLoop(deadline) {
 requestIdleCallback(workLoop);
 
 function performUnitOfWork(fiber) {
-  if (!fiber.dom) {
-    fiber.dom = createDom(fiber);
-  }
+  // if (!fiber.dom) {
+  //   fiber.dom = createDom(fiber);
+  // }
 
-  const elements = fiber.props.children;
-  reconcileChildren(fiber, elements);
+  // const elements = fiber.props.children;
+  // reconcileChildren(fiber, elements);
+
+  const isFunctionComponent = fiber.type instanceof Function;
+  if (isFunctionComponent) {
+    updateFunctionComponent(fiber);
+  } else {
+    updateHostComponent(fiber);
+  }
 
   if (fiber.child) {
     return fiber.child;
@@ -82,6 +107,21 @@ function performUnitOfWork(fiber) {
     }
     nextFiber = nextFiber.parent;
   }
+}
+
+function updateFunctionComponent(fiber) {
+  // wipFiber = fiber;
+  // hookIndex = 0;
+  // wipFiber.hooks = [];
+  const children = [fiber.type(fiber.props)];
+  reconcileChildren(fiber, children);
+}
+
+function updateHostComponent(fiber) {
+  if (!fiber.dom) {
+    fiber.dom = createDom(fiber);
+  }
+  reconcileChildren(fiber, fiber.props.children);
 }
 
 function reconcileChildren(wipFiber, elements) {

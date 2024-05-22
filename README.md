@@ -10,8 +10,8 @@
 - [x] step IV : Fibers
 - [x] step V : Render and Commit Phases
 - [x] step VI : Reconcilliation
-- [ ] step VII : Function Components
-- [ ] step VIII : Hooks
+- [x] step VII : Function Components
+- [x] step VIII : Hooks
 
 ---
 

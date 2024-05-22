@@ -1,6 +1,7 @@
 import { createElement } from "./createElement.js";
 // import { render } from "./renderElement.js";
 import { createDom, updateDom } from "./createDom.js";
+import { reconcileChildren } from "./reconcileChildren.js";
 
 function commitRoot() {
   deletions.forEach(commitWork);
@@ -83,13 +84,6 @@ function workLoop(deadline) {
 requestIdleCallback(workLoop);
 
 function performUnitOfWork(fiber) {
-  // if (!fiber.dom) {
-  //   fiber.dom = createDom(fiber);
-  // }
-
-  // const elements = fiber.props.children;
-  // reconcileChildren(fiber, elements);
-
   const isFunctionComponent = fiber.type instanceof Function;
   if (isFunctionComponent) {
     updateFunctionComponent(fiber);
@@ -130,6 +124,11 @@ function useState(initial) {
     queue: [],
   };
 
+  const actions = oldHook ? oldHook.queue : [];
+  actions.forEach((action) => {
+    hook.state = action(hook.state);
+  });
+
   const setState = (action) => {
     hook.queue.push(action);
     wipRoot = {
@@ -143,7 +142,7 @@ function useState(initial) {
 
   wipFiber.hooks.push(hook);
   hookIndex++;
-  return [hook.state], setState;
+  return [hook.state, setState];
 }
 
 function updateHostComponent(fiber) {
@@ -153,58 +152,8 @@ function updateHostComponent(fiber) {
   reconcileChildren(fiber, fiber.props.children);
 }
 
-function reconcileChildren(wipFiber, elements) {
-  let index = 0;
-  let oldFiber = wipFiber.alternate && wipFiber.alternate.child;
-  let prevSibling = null;
-
-  while (index < elements.length || oldFiber != null) {
-    const element = elements[index];
-    let newFiber = null;
-
-    const sameType = oldFiber && element && element.type == oldFiber.type;
-
-    if (sameType) {
-      newFiber = {
-        type: oldFiber.type,
-        props: element.props,
-        dom: oldFiber.dom,
-        parent: wipFiber,
-        alternate: oldFiber,
-        effectTag: "UPDATE",
-      };
-    }
-    if (element && !sameType) {
-      newFiber = {
-        type: element.type,
-        props: element.props,
-        dom: null,
-        parent: wipFiber,
-        alternate: null,
-        effectTag: "PLACEMENT",
-      };
-    }
-    if (oldFiber && !sameType) {
-      oldFiber.effectTag = "DELETION";
-      deletions.push(oldFiber);
-    }
-
-    if (oldFiber) {
-      oldFiber = oldFiber.sibling;
-    }
-
-    if (index === 0) {
-      wipFiber.child = newFiber;
-    } else if (element) {
-      prevSibling.sibling = newFiber;
-    }
-
-    prevSibling = newFiber;
-    index++;
-  }
-}
-
 export const Didact = {
   createElement,
   render,
+  useState,
 };

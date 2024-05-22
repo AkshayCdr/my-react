@@ -1,4 +1,4 @@
-import { Didact } from "../React.js";
+import { Didact } from "../src/didact/React.js";
 
 function App(props) {
   const [state, setState] = Didact.useState(1);
